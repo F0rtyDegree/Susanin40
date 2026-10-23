@@ -1,0 +1,25 @@
+name: myapp
+description: Susanin 40 navigator
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '^3.9.0'
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  mapsforge_flutter: ^4.0.0
+  mapsforge_flutter_core: ^4.0.0
+  mapsforge_flutter_mapfile: ^4.0.0
+  file_picker: ^8.0.0
+  shared_preferences: ^2.5.0
+
+flutter:
+  uses-material-design: true
+  
