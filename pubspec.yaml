@@ -1,7 +1,7 @@
-name: myapp
+name: susanin40
 description: Susanin 40 navigator
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.0.1
 
 environment:
   sdk: '^3.9.0'
@@ -17,7 +17,10 @@ dependencies:
   mapsforge_flutter: ^4.0.0
   mapsforge_flutter_core: ^4.0.0
   mapsforge_flutter_mapfile: ^4.0.0
-  file_picker: ^8.0.0
+  file_picker: ^10.3.7
+  path_provider: ^2.1.5
+  package_info_plus: ^8.1.2
+  permission_handler: ^11.3.1
   shared_preferences: ^2.5.0
 
 flutter:

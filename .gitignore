@@ -3,6 +3,20 @@
 
 # Но разрешить эти папки и файлы
 !/.gitignore
+!/.metadata
+!/analysis_options.yaml
+!/pubspec.yaml
+!/pubspec.lock
 !/lib/
+!/android/
+!/test/
 !info
-!pubspec.yaml
+
+# Игнорировать мусор внутри android/
+android/.gradle/
+android/local.properties
+android/app/build/
+android/app/.cxx/
+android/gradlew
+android/gradlew.bat
+android/captures/

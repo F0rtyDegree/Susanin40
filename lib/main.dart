@@ -30,10 +30,10 @@ class MainScreen extends StatelessWidget {
         title: const Text('Susanin 40°'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.info_outline),
+            icon: const Icon(Icons.settings),
             onPressed: () => Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => const InfoScreen()),
+              MaterialPageRoute(builder: (_) => const SettingsScreen()),
             ),
           ),
           IconButton(
@@ -44,10 +44,10 @@ class MainScreen extends StatelessWidget {
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.settings),
+            icon: const Icon(Icons.info_outline),
             onPressed: () => Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => const SettingsScreen()),
+              MaterialPageRoute(builder: (_) => const InfoScreen()),
             ),
           ),
         ],
