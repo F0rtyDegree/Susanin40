@@ -1,7 +1,7 @@
 name: susanin40
 description: Susanin 40 navigator
 publish_to: 'none'
-version: 1.0.2
+version: 1.0.3
 
 environment:
   sdk: '^3.9.0'
@@ -21,6 +21,7 @@ dependencies:
   permission_handler: ^11.3.1
   package_info_plus: ^8.1.2
   shared_preferences: ^2.5.0
+  xml: ^6.5.0
 
 flutter:
   uses-material-design: true
