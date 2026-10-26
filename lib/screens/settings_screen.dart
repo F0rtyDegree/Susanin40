@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:file_picker/file_picker.dart';
+import 'package:filesystem_picker/filesystem_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mapsforge_flutter_mapfile/mapfile.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -20,7 +20,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _isPickingFile = false;
   bool _loading = false;
   bool _isLoaded = false;
-  String? _statusMessage;
   int? _subFileCount;
   String? _error;
 
@@ -52,28 +51,47 @@ class _SettingsScreenState extends State<SettingsScreen> {
     });
 
     final status = await Permission.manageExternalStorage.request();
+
+    if (!mounted) return;
+
     if (!status.isGranted) {
       setState(() {
         _isPickingFile = false;
-        _error = 'Нет разрешения на доступ к файлам';
+        _error = status.isPermanentlyDenied
+            ? 'Разрешение отклонено навсегда. Включите его в настройках приложения.'
+            : 'Нет разрешения на доступ к файлам.';
       });
+      if (status.isPermanentlyDenied) {
+        await openAppSettings();
+      }
       return;
     }
 
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.any,
-    );
-    final pickedFile = result?.files.single;
-    if (pickedFile == null || pickedFile.path == null) {
-      setState(() => _isPickingFile = false);
-      return;
-    }
-
-    if (!pickedFile.name.toLowerCase().endsWith('.map')) {
+    final rootDirectory = Directory('/storage/emulated/0');
+    if (!await rootDirectory.exists()) {
+      if (!mounted) return;
       setState(() {
         _isPickingFile = false;
-        _error = 'Выбранный файл не является .map';
+        _error = 'Не удалось получить доступ к хранилищу';
       });
+      return;
+    }
+
+    if (!mounted) return;
+
+    final String? pickedPath = await FilesystemPicker.open(
+      title: 'Выберите файл карты (.map)',
+      context: context,
+      rootDirectory: rootDirectory,
+      fsType: FilesystemType.file,
+      allowedExtensions: ['.map'],
+      fileTileSelectMode: FileTileSelectMode.wholeTile,
+    );
+
+    if (!mounted) return;
+
+    if (pickedPath == null) {
+      setState(() => _isPickingFile = false);
       return;
     }
 
@@ -82,15 +100,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     });
 
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_pathKey, pickedFile.path!);
-    setState(() => _path = pickedFile.path!);
-    await _openMap(pickedFile.path!);
+    await prefs.setString(_pathKey, pickedPath);
+    setState(() => _path = pickedPath);
+    await _openMap(pickedPath);
   }
 
   Future<void> _openMap(String path) async {
     setState(() {
       _loading = true;
-      _statusMessage = 'Чтение карты...';
       _error = null;
       _subFileCount = null;
       _isLoaded = false;
@@ -101,6 +118,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
       await mapFile.getBoundingBox();
       final info = mapFile.getMapHeaderInfo();
       final count = info.numberOfSubFiles;
+
+      if (!mounted) {
+        mapFile.dispose();
+        return;
+      }
+
       _mapFile?.dispose();
       _mapFile = mapFile;
       setState(() {
@@ -108,9 +131,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
         _isLoaded = true;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() => _error = e.toString());
     } finally {
-      setState(() => _loading = false);
+      if (mounted) {
+        setState(() => _loading = false);
+      }
     }
   }
 
@@ -144,8 +170,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 16),
             if (_path != null) Text('Файл: $_path'),
             const SizedBox(height: 16),
-            if (_loading && _statusMessage != null)
-              Text(_statusMessage!),
             if (!_loading && _subFileCount != null)
               Text('Загружено объектов: $_subFileCount'),
             if (!_loading && _error != null)
