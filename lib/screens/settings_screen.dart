@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:filesystem_picker/filesystem_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:mapsforge_flutter_mapfile/mapfile.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:io';
+import '../services/map_service.dart';
+import '../theme.dart';
 
 class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({super.key});
+  final AppTheme currentTheme;
+  final Function(AppTheme) onThemeChanged;
+
+  const SettingsScreen({super.key, required this.currentTheme, required this.onThemeChanged});
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -15,7 +19,6 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   static const _pathKey = 'map_file_path';
 
-  Mapfile? _mapFile;
   String? _path;
   bool _isPickingFile = false;
   bool _loading = false;
@@ -113,37 +116,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _isLoaded = false;
     });
 
-    try {
-      final mapFile = await Mapfile.createFromFile(filename: path);
-      await mapFile.getBoundingBox();
-      final info = mapFile.getMapHeaderInfo();
+    final success = await MapService.instance.open(path);
+    if (!mounted) return;
+
+    if (success) {
+      final info = MapService.instance.mapFile!.getMapHeaderInfo();
       final count = info.numberOfSubFiles;
-
-      if (!mounted) {
-        mapFile.dispose();
-        return;
-      }
-
-      _mapFile?.dispose();
-      _mapFile = mapFile;
       setState(() {
         _subFileCount = count;
         _isLoaded = true;
       });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _error = e.toString());
-    } finally {
-      if (mounted) {
-        setState(() => _loading = false);
-      }
+    } else {
+      setState(() => _error = 'Ошибка открытия карты');
     }
-  }
 
-  @override
-  void dispose() {
-    _mapFile?.dispose();
-    super.dispose();
+    if (mounted) {
+      setState(() => _loading = false);
+    }
   }
 
   @override
@@ -177,6 +166,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 'Ошибка: $_error',
                 style: const TextStyle(color: Colors.red),
               ),
+            const SizedBox(height: 32),
+            const Text('Оформление', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            DropdownButton<AppTheme>(
+              value: widget.currentTheme,
+              isExpanded: true,
+              items: AppTheme.values.map((theme) {
+                String name;
+                switch (theme) {
+                  case AppTheme.white: name = 'Белый'; break;
+                  case AppTheme.black: name = 'Чёрный'; break;
+                  case AppTheme.grey: name = 'Серый'; break;
+                }
+                return DropdownMenuItem(value: theme, child: Text(name));
+              }).toList(),
+              onChanged: (v) {
+                if (v != null) widget.onThemeChanged(v);
+              },
+            ),
           ],
         ),
       ),

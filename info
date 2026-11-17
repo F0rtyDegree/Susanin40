@@ -3,9 +3,10 @@ flutter clean & flutter pub get --offline
 git reset --soft HEAD~1
 git add . 
 git commit -m "
-version: 1.0.3 Загрузка GPX
+version: 1.0.4 Построение списка всех узлов и развилок
 "
 
+version: 1.0.3 Загрузка GPX
 version: 1.0.2 Делаем прямой доступ к карте
 version: 1.0.1 выбор карты, чтение заголовка, экран информации
 
